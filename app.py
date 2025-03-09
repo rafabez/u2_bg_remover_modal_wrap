@@ -20,7 +20,8 @@ image = (
         "opencv-python>=4.4.0", 
         "scikit-image>=0.17.2", 
         "fastapi>=0.68.0", 
-        "python-multipart>=0.0.5"
+        "python-multipart>=0.0.5",
+        "gdown>=4.6.0"  # Add gdown for Google Drive downloads
     ])
 )
 
@@ -41,6 +42,48 @@ class BackgroundRemover:
     def __init__(self):
         self.model = None
         
+    def download_model_weights(self, model_path):
+        """Download the model weights file if it doesn't exist"""
+        print(f"Model weights not found at {model_path}, attempting to download...")
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        
+        try:
+            # Try HuggingFace first (reliable direct download)
+            import urllib.request
+            print("Downloading from HuggingFace...")
+            url = "https://huggingface.co/akhaliq/u2net/resolve/main/u2net.pth"
+            urllib.request.urlretrieve(url, model_path)
+            
+            # Verify file was downloaded correctly
+            if os.path.exists(model_path) and os.path.getsize(model_path) > 1000000:  # >1MB
+                print("Successfully downloaded model weights!")
+                return True
+            else:
+                print("Download from HuggingFace failed, trying Google Drive...")
+                os.remove(model_path)  # Remove the potentially corrupted file
+        except Exception as e:
+            print(f"Error downloading from HuggingFace: {str(e)}")
+            
+        try:
+            # Try using gdown for Google Drive
+            import gdown
+            print("Downloading from Google Drive...")
+            url = "https://drive.google.com/uc?id=1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ"
+            gdown.download(url, model_path, quiet=False)
+            
+            # Verify file was downloaded correctly
+            if os.path.exists(model_path) and os.path.getsize(model_path) > 1000000:  # >1MB
+                print("Successfully downloaded model weights!")
+                return True
+            else:
+                print("Download from Google Drive failed")
+                if os.path.exists(model_path):
+                    os.remove(model_path)  # Remove the potentially corrupted file
+        except Exception as e:
+            print(f"Error downloading from Google Drive: {str(e)}")
+            
+        return False
+        
     def load_model(self):
         """Load the U-2-Net model"""
         # Import U-2-Net model dynamically
@@ -49,6 +92,18 @@ class BackgroundRemover:
         
         # Set up model path
         model_path = "/root/saved_models/u2net/u2net.pth"
+        
+        # Check if model file exists and is valid, try to download if not
+        if not os.path.exists(model_path) or os.path.getsize(model_path) < 1000000:  # <1MB is too small
+            if not self.download_model_weights(model_path):
+                error_msg = (
+                    f"Could not download model weights to {model_path}.\n"
+                    "Please download the model weights file (u2net.pth) manually and place it in the U-2-Net/saved_models/u2net/ directory.\n"
+                    "You can download it from: https://drive.google.com/file/d/1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ/view?usp=sharing\n"
+                    "See the README.md file for detailed instructions."
+                )
+                print(error_msg)
+                raise FileNotFoundError(error_msg)
         
         # Load model
         print("Loading U-2-Net model...")

@@ -15,42 +15,40 @@ This project wraps the U-2-Net background removal model to deploy it on [Modal](
 └── requirements.txt         # Project dependencies
 ```
 
-## Setup and Deployment
+## Setup Instructions
 
-### Prerequisites
-
-- Python 3.8+
-- Modal account and CLI setup
-- U-2-Net pre-trained model weights (must be downloaded separately, see below)
-
-### Model Weights Download
-
-⚠️ **Important:** Before using this application, you must download the U-2-Net model weights:
-
-1. Create the directory structure for model weights:
+### 1. Clone the Repository
 
 ```bash
-mkdir -p U-2-Net/saved_models/u2net
+git clone https://github.com/rafabez/u2_bg_remover_modal_wrap.git
+cd u2_bg_remover_modal_wrap
 ```
 
-2. Download the model weights:
+### 2. Download Model Weights (IMPORTANT)
 
-```bash
-# Main U-2-Net model (for general object segmentation)
-wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2net.pth -O U-2-Net/saved_models/u2net/u2net.pth
+**This step is required for the application to work properly.**
 
-# Optional: Human portrait model (for better results on human subjects)
-# mkdir -p U-2-Net/saved_models/u2net_portrait
-# wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2net_portrait.pth -O U-2-Net/saved_models/u2net_portrait/u2net_portrait.pth
+Download the U-2-Net model weights file (~176MB) and place it in the correct directory:
 
-# Optional: Smaller model (faster but less accurate)
-# mkdir -p U-2-Net/saved_models/u2netp
-# wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2netp.pth -O U-2-Net/saved_models/u2netp/u2netp.pth
+1. Download the model weights file from [Google Drive](https://drive.google.com/file/d/1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ/view?usp=sharing)
+2. Create the directory structure if it doesn't exist: `U-2-Net/saved_models/u2net/`
+3. Place the downloaded `u2net.pth` file in this directory
+
+Your directory structure should look like this:
+```
+u2_bg_remover_modal_wrap/
+├── U-2-Net/
+│   ├── model/
+│   │   └── u2net.py
+│   └── saved_models/
+│       └── u2net/
+│           └── u2net.pth  <- Place the downloaded file here
+├── app.py
+├── requirements.txt
+└── ...
 ```
 
-> Note: Model weights files are approximately 176MB each.
-
-### Local Development
+### 3. Install Dependencies
 
 1. Create and activate a virtual environment:
 
@@ -71,7 +69,9 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Test the application locally:
+### Local Development
+
+1. Test the application locally:
 
 ```bash
 # Replace with actual file paths
