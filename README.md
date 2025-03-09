@@ -7,7 +7,7 @@ This project wraps the U-2-Net background removal model to deploy it on [Modal](
 ```
 ├── U-2-Net/                 # Original U-2-Net repository
 │   ├── model/               # Model architecture
-│   ├── saved_models/        # Pre-trained weights
+│   ├── saved_models/        # Directory for pre-trained weights (need to be downloaded separately)
 │   └── test_data/           # Sample images for testing
 ├── app.py                   # Main Modal application
 ├── templates/               # Web frontend
@@ -21,7 +21,34 @@ This project wraps the U-2-Net background removal model to deploy it on [Modal](
 
 - Python 3.8+
 - Modal account and CLI setup
-- U-2-Net pre-trained model weights (already included in this repository)
+- U-2-Net pre-trained model weights (must be downloaded separately, see below)
+
+### Model Weights Download
+
+⚠️ **Important:** Before using this application, you must download the U-2-Net model weights:
+
+1. Create the directory structure for model weights:
+
+```bash
+mkdir -p U-2-Net/saved_models/u2net
+```
+
+2. Download the model weights:
+
+```bash
+# Main U-2-Net model (for general object segmentation)
+wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2net.pth -O U-2-Net/saved_models/u2net/u2net.pth
+
+# Optional: Human portrait model (for better results on human subjects)
+# mkdir -p U-2-Net/saved_models/u2net_portrait
+# wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2net_portrait.pth -O U-2-Net/saved_models/u2net_portrait/u2net_portrait.pth
+
+# Optional: Smaller model (faster but less accurate)
+# mkdir -p U-2-Net/saved_models/u2netp
+# wget https://github.com/xuebinqin/U-2-Net/releases/download/1.0/u2netp.pth -O U-2-Net/saved_models/u2netp/u2netp.pth
+```
+
+> Note: Model weights files are approximately 176MB each.
 
 ### Local Development
 
@@ -78,27 +105,29 @@ git clone https://github.com/your-username/u2_bg_remover_modal_wrap.git
 cd u2_bg_remover_modal_wrap
 ```
 
-2. The new user should install the Modal CLI and log in with their account:
+2. Download the model weights following the instructions in the [Model Weights Download](#model-weights-download) section.
+
+3. The new user should install the Modal CLI and log in with their account:
 
 ```bash
 pip install modal
 modal login
 ```
 
-3. (Optional) If desired, they can modify the app name in `app.py` to reflect their ownership:
+4. (Optional) If desired, they can modify the app name in `app.py` to reflect their ownership:
 
 ```python
 # Create a Modal app
 app = modal.App("custom-name-u2net-bg-remover")
 ```
 
-4. Deploy to their Modal account:
+5. Deploy to their Modal account:
 
 ```bash
 modal deploy app.py
 ```
 
-5. The application will be deployed to their Modal account with a unique URL following this pattern:
+6. The application will be deployed to their Modal account with a unique URL following this pattern:
    `https://username--app-name-function-name.modal.run`
 
 ## Usage
