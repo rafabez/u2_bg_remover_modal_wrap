@@ -1,21 +1,34 @@
-# U-2-Net Background Remover for Modal
+# U-2-Net Background Remover (Modal Implementation)
 
-This project wraps the U-2-Net background removal model to deploy it on [Modal](https://modal.com). U-2-Net is a highly effective model for removing backgrounds from images.
+A web application that uses the U-2-Net model to automatically remove backgrounds from images, deployed with Modal.com.
 
 ## Project Structure
 
 ```
-├── U-2-Net/                 # Original U-2-Net repository
-│   ├── model/               # Model architecture
-│   ├── saved_models/        # Directory for pre-trained weights (need to be downloaded separately)
-│   └── test_data/           # Sample images for testing
-├── app.py                   # Main Modal application
-├── templates/               # Web frontend
-│   └── index.html           # HTML UI for uploading images
-└── requirements.txt         # Project dependencies
+.
+├── U-2-Net/                  # U-2-Net model directory
+│   ├── model/                # Model architecture code
+│   └── saved_models/u2net/   # Directory for model weights (auto-downloaded at runtime)
+├── templates/                # Web interface templates
+├── app.py                    # Main application file for Modal deployment
+├── local_test.py             # Script for local testing
+└── requirements.txt          # Project dependencies
 ```
 
-## Setup Instructions
+## Overview
+
+This application wraps the U-2-Net deep learning model developed by Xuebin Qin et al. to automatically remove backgrounds from images. The model is deployed as a web service on Modal, allowing users to upload images and receive versions with transparent backgrounds.
+
+## Features
+
+- **Automatic Background Removal**: Upload any image to get a transparent PNG with the background removed
+- **Web Interface**: Simple web UI for uploading images and downloading results
+- **Automated Model Loading**: The application automatically downloads the model weights at runtime (~176MB)
+- **Optimized Deployment**: Efficient deployment on Modal.com with minimal container size
+- **Fixed Color Handling**: Properly handles RGB/BGR color channel conversion for accurate colors
+- **OpenCV Dependency Management**: Pre-configured with necessary system dependencies for OpenCV
+
+## Quick Start
 
 ### 1. Clone the Repository
 
@@ -24,43 +37,36 @@ git clone https://github.com/rafabez/u2_bg_remover_modal_wrap.git
 cd u2_bg_remover_modal_wrap
 ```
 
-### 2. Download Model Weights (IMPORTANT)
+### 2. Deploy to Modal
 
-**This step is required for the application to work properly.**
+The application is designed to be deployed directly to Modal with minimal setup:
 
-Download the U-2-Net model weights file (~176MB) and place it in the correct directory:
-
-1. Download the model weights file from [Google Drive](https://drive.google.com/file/d/1ao1ovG1Qtx4b7EoskHXmi2E9rp5CHLcZ/view?usp=sharing)
-2. Create the directory structure if it doesn't exist: `U-2-Net/saved_models/u2net/`
-3. Place the downloaded `u2net.pth` file in this directory
-
-Your directory structure should look like this:
-```
-u2_bg_remover_modal_wrap/
-├── U-2-Net/
-│   ├── model/
-│   │   └── u2net.py
-│   └── saved_models/
-│       └── u2net/
-│           └── u2net.pth  <- Place the downloaded file here
-├── app.py
-├── requirements.txt
-└── ...
+1. Install the Modal CLI:
+```bash
+pip install modal
 ```
 
-### 3. Install Dependencies
+2. Log in to Modal:
+```bash
+modal token new
+```
+
+3. Deploy the application:
+```bash
+modal deploy app.py
+```
+
+That's it! The application will automatically download the U-2-Net model weights file (~176MB) the first time it runs. You don't need to manually download or place any model files.
+
+### Local Development
+
+If you want to test or develop locally:
 
 1. Create and activate a virtual environment:
 
 ```bash
-# Create virtual environment
 python -m venv venv
-
-# Activate on Windows
-venv\Scripts\activate
-
-# Activate on macOS/Linux
-# source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
@@ -69,125 +75,68 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Local Development
-
-1. Test the application locally:
+3. Test the application locally:
 
 ```bash
 # Replace with actual file paths
-modal run app.py --input_path "U-2-Net/test_data/test_images/bike.jpg" --output_path "output.png"
+python local_test.py input_image.jpg output_image.png
 ```
 
-### Deploying to Modal
+## Model Details
 
-1. Ensure you're logged in to Modal with your account:
+The U-2-Net model is a two-level nested U-structure architecture designed for salient object detection. This implementation uses it for background removal by generating a binary mask that separates the foreground (object) from the background.
 
+For more information about the model, see the [original U-2-Net repository](https://github.com/xuebinqin/U-2-Net).
+
+## Deployment
+
+The application is deployed at: https://rafabez--u2net-bg-remover-fastapi-app.modal.run
+
+### How It Works
+
+1. The Modal deployment creates a container with all necessary dependencies (including OpenCV requirements)
+2. The first time the application runs, it automatically downloads the model weights from multiple backup sources
+3. FastAPI serves the web interface and API endpoints
+4. When an image is uploaded, the background removal function processes it with proper color channel handling
+5. The transparent PNG result is returned to the user
+
+## For Others Deploying This Project
+
+If someone else wants to deploy this project to their own Modal account:
+
+1. Clone the repository:
 ```bash
-modal login
-```
-
-2. Deploy the application:
-
-```bash
-modal deploy app.py
-```
-
-3. Once deployed, your application will be available at the URL provided by Modal. You can also access it through the Modal dashboard.
-
-### Deploying to Another Modal Account
-
-This wrapper can be used for multiple Modal accounts. To deploy to a different account:
-
-1. The new user should clone this repository:
-
-```bash
-git clone https://github.com/your-username/u2_bg_remover_modal_wrap.git
+git clone https://github.com/rafabez/u2_bg_remover_modal_wrap.git
 cd u2_bg_remover_modal_wrap
 ```
 
-2. Download the model weights following the instructions in the [Model Weights Download](#model-weights-download) section.
-
-3. The new user should install the Modal CLI and log in with their account:
-
+2. Install the Modal CLI and log in with their account:
 ```bash
 pip install modal
-modal login
+modal token new
 ```
 
-4. (Optional) If desired, they can modify the app name in `app.py` to reflect their ownership:
-
+3. (Optional) Modify the app name in `app.py` to reflect their ownership:
 ```python
 # Create a Modal app
-app = modal.App("custom-name-u2net-bg-remover")
+app = modal.App("your-username-u2net-bg-remover")
 ```
 
-5. Deploy to their Modal account:
-
+4. Deploy to their Modal account:
 ```bash
 modal deploy app.py
 ```
 
-6. The application will be deployed to their Modal account with a unique URL following this pattern:
-   `https://username--app-name-function-name.modal.run`
+The application will be deployed with a unique URL following this pattern:
+`https://username--app-name-fastapi-app.modal.run`
 
-## Usage
+## Acknowledgments
 
-### Web Interface
+- Original U-2-Net implementation by [Xuebin Qin et al.](https://github.com/xuebinqin/U-2-Net)
+- Image processing using OpenCV and PIL
+- Web service built with FastAPI
+- Deployment on Modal.com
 
-After deployment, navigate to the root URL of your Modal application to access the web interface:
+## License
 
-1. Click the upload area or drag and drop an image
-2. Click "Remove Background" to process the image
-3. The result will be displayed with a transparent background (PNG format)
-
-### API Usage
-
-You can also use the background removal endpoint programmatically:
-
-```python
-import requests
-
-response = requests.post(
-    "https://your-modal-endpoint.modal.run/remove-background",
-    files={"image": open("path/to/your/image.jpg", "rb")}
-)
-
-# Save the result
-with open("result.png", "wb") as f:
-    f.write(response.content)
-```
-
-## How It Works
-
-1. **Image Upload**: User uploads an image via the web interface or API
-2. **Preprocessing**: Image is resized to 320x320 and normalized
-3. **Model Inference**: U-2-Net processes the image to create a saliency map
-4. **Postprocessing**: The saliency map is used to create an alpha channel
-5. **Result**: The original image with a transparent background is returned
-
-## Implementing Additional Features
-
-### Mask Threshold Adjustment
-
-To implement a mask threshold adjustment feature, you would need to modify the code before deployment:
-
-1. Update the `index.html` file to include a slider or input field for the threshold value
-2. Modify the FastAPI endpoint to accept this threshold parameter
-3. Update the `postprocess` method in the `BackgroundRemover` class to use the provided threshold value instead of the fixed 0.5 value:
-
-```python
-# Current implementation
-mask = (mask > 0.5).astype(np.uint8) * 255
-
-# Modified implementation with threshold parameter
-mask = (mask > threshold).astype(np.uint8) * 255
-```
-
-4. Redeploy the application with `modal deploy app.py`
-
-Other potential features like different model options or image resizing would follow the same pattern: modify the code before deployment, and then redeploy the application.
-
-## Credits
-
-- [U-2-Net](https://github.com/xuebinqin/U-2-Net) - Original implementation by Xuebin Qin
-- [Modal](https://modal.com) - Cloud platform for deployment
+This project is released under the same license as the original U-2-Net implementation (Apache 2.0).
